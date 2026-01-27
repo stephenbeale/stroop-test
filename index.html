@@ -142,6 +142,86 @@
             text-transform: uppercase;
             letter-spacing: 0.15em;
         }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            color: #aaa;
+            font-size: 1rem;
+        }
+
+        .toggle {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            cursor: pointer;
+        }
+
+        .toggle input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            background: #444;
+            border-radius: 13px;
+            transition: background 0.2s;
+        }
+
+        .toggle input:checked + .toggle-track { background: #e94560; }
+
+        .toggle-track::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .toggle input:checked + .toggle-track::after {
+            transform: translateX(22px);
+        }
+
+        .color-btn.no-label { color: transparent; }
+
+        #pause-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(26, 26, 46, 0.95);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        #pause-overlay.active { display: flex; }
+
+        #pause-overlay h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #e94560;
+        }
+
+        #pause-overlay p {
+            font-size: 1.2rem;
+            color: #aaa;
+            text-align: center;
+            line-height: 1.6;
+            max-width: 400px;
+        }
+
+        #pause-overlay .countdown {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #fff;
+            margin-top: 1.5rem;
+        }
     </style>
 </head>
 <body>
@@ -151,8 +231,15 @@
     <p class="instructions">
         A colour word will appear on screen, but displayed in a <strong>different colour</strong>.<br><br>
         Your task: identify the <strong>colour of the text</strong>, not the word itself.<br><br>
-        You have <strong>10 seconds</strong> per round. How long can you keep your streak?
+        You have <strong>10 seconds</strong> per round. Every <strong>10 correct answers</strong>, the time drops by 1 second. How long can you keep your streak?
     </p>
+    <div class="toggle-row">
+        <label class="toggle">
+            <input type="checkbox" id="show-labels" checked>
+            <span class="toggle-track"></span>
+        </label>
+        <span>Show labels on buttons</span>
+    </div>
     <button id="start-btn">Start</button>
 </div>
 
@@ -171,6 +258,12 @@
     </div>
 </div>
 
+<div id="pause-overlay">
+    <h2>Level Up!</h2>
+    <p id="pause-message"></p>
+    <div class="countdown" id="pause-countdown">5</div>
+</div>
+
 <div id="end-screen">
     <h1>Game Over</h1>
     <div id="end-message"></div>
@@ -182,7 +275,8 @@
 <script>
     const COLORS = ['red', 'green', 'blue', 'grey', 'yellow'];
     const COLOR_CSS = { red: '#dc3545', green: '#28a745', blue: '#007bff', grey: '#999', yellow: '#e6c619' };
-    const TIME_LIMIT = 10000;
+    const INITIAL_TIME_LIMIT = 10000;
+    const MIN_TIME_LIMIT = 2000;
 
     let wordIndex = 0;
     let streak = 0;
@@ -190,6 +284,9 @@
     let timerStart = 0;
     let timerRAF = 0;
     let timeout = 0;
+    let showLabels = true;
+    let timeLimit = INITIAL_TIME_LIMIT;
+    let pauseCountdownInterval = 0;
 
     const startScreen = document.getElementById('start-screen');
     const gameScreen = document.getElementById('game-screen');
@@ -199,9 +296,12 @@
     const finalScore = document.getElementById('final-score');
     const endMessage = document.getElementById('end-message');
     const buttons = document.querySelectorAll('.color-btn');
+    const pauseOverlay = document.getElementById('pause-overlay');
+    const pauseMessage = document.getElementById('pause-message');
+    const pauseCountdown = document.getElementById('pause-countdown');
 
     document.getElementById('start-btn').addEventListener('click', startGame);
-    document.getElementById('restart-btn').addEventListener('click', startGame);
+    document.getElementById('restart-btn').addEventListener('click', () => show(startScreen));
     buttons.forEach(btn => btn.addEventListener('click', () => handleAnswer(btn.dataset.color)));
 
     function show(screen) {
@@ -212,6 +312,9 @@
     function startGame() {
         wordIndex = 0;
         streak = 0;
+        timeLimit = INITIAL_TIME_LIMIT;
+        showLabels = document.getElementById('show-labels').checked;
+        buttons.forEach(btn => btn.classList.toggle('no-label', !showLabels));
         show(gameScreen);
         nextRound();
     }
@@ -234,7 +337,7 @@
         timerBar.classList.remove('warning');
         // force reflow
         void timerBar.offsetWidth;
-        timerBar.style.transition = `width ${TIME_LIMIT}ms linear, background 0.3s linear`;
+        timerBar.style.transition = `width ${timeLimit}ms linear, background 0.3s linear`;
         timerBar.style.width = '0%';
 
         timerStart = performance.now();
@@ -243,25 +346,51 @@
 
         timerRAF = requestAnimationFrame(function tick() {
             const elapsed = performance.now() - timerStart;
-            if (elapsed > TIME_LIMIT * 0.6) timerBar.classList.add('warning');
-            if (elapsed < TIME_LIMIT) timerRAF = requestAnimationFrame(tick);
+            if (elapsed > timeLimit * 0.6) timerBar.classList.add('warning');
+            if (elapsed < timeLimit) timerRAF = requestAnimationFrame(tick);
         });
 
-        timeout = setTimeout(() => endGame('Time ran out!'), TIME_LIMIT);
+        timeout = setTimeout(() => endGame('Time ran out!'), timeLimit);
     }
 
     function handleAnswer(chosen) {
         if (!gameScreen.classList.contains('active')) return;
+        if (pauseOverlay.classList.contains('active')) return;
 
         clearTimeout(timeout);
         cancelAnimationFrame(timerRAF);
 
         if (chosen === currentFillColor) {
             streak++;
-            nextRound();
+            if (streak > 0 && streak % 10 === 0 && timeLimit > MIN_TIME_LIMIT) {
+                showPause();
+            } else {
+                nextRound();
+            }
         } else {
             endGame(`The answer was ${currentFillColor.toUpperCase()}.`);
         }
+    }
+
+    function showPause() {
+        const newLimit = Math.max(timeLimit - 1000, MIN_TIME_LIMIT);
+        const newSeconds = newLimit / 1000;
+        pauseMessage.textContent = `Nice work! ${streak} in a row! Time per round is now ${newSeconds} second${newSeconds !== 1 ? 's' : ''}.`;
+        pauseCountdown.textContent = '5';
+        pauseOverlay.classList.add('active');
+
+        let remaining = 5;
+        clearInterval(pauseCountdownInterval);
+        pauseCountdownInterval = setInterval(() => {
+            remaining--;
+            pauseCountdown.textContent = remaining;
+            if (remaining <= 0) {
+                clearInterval(pauseCountdownInterval);
+                pauseOverlay.classList.remove('active');
+                timeLimit = newLimit;
+                nextRound();
+            }
+        }, 1000);
     }
 
     function endGame(reason) {
