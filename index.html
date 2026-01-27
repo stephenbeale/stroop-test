@@ -117,7 +117,8 @@
         .color-btn[data-color="red"]   { background: #dc3545; }
         .color-btn[data-color="green"] { background: #28a745; }
         .color-btn[data-color="blue"]  { background: #007bff; }
-        .color-btn[data-color="grey"]  { background: #808080; }
+        .color-btn[data-color="grey"]   { background: #808080; }
+        .color-btn[data-color="yellow"] { background: #d4a017; color: #fff; }
 
         #end-screen h1 { font-size: 2rem; }
 
@@ -166,6 +167,7 @@
         <button class="color-btn" data-color="green">Green</button>
         <button class="color-btn" data-color="blue">Blue</button>
         <button class="color-btn" data-color="grey">Grey</button>
+        <button class="color-btn" data-color="yellow">Yellow</button>
     </div>
 </div>
 
@@ -178,8 +180,8 @@
 </div>
 
 <script>
-    const COLORS = ['red', 'green', 'blue', 'grey'];
-    const COLOR_CSS = { red: '#dc3545', green: '#28a745', blue: '#007bff', grey: '#999' };
+    const COLORS = ['red', 'green', 'blue', 'grey', 'yellow'];
+    const COLOR_CSS = { red: '#dc3545', green: '#28a745', blue: '#007bff', grey: '#999', yellow: '#e6c619' };
     const TIME_LIMIT = 10000;
 
     let wordIndex = 0;
