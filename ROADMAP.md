@@ -4,7 +4,7 @@
 
 Add a toggle that removes the colour background from buttons, leaving only the text label. This forces players to read the word on each button rather than relying on the button colour as a visual cue.
 
-## Feature 2: Difficulty Levels (Easy / Medium / Hard)
+## Feature 2: Difficulty Levels (Easy / Medium / Hard) ✅
 
 Replace individual toggles with three preset difficulty levels that group settings together.
 
@@ -55,3 +55,37 @@ Add a mode where the player's microphone is the only input method. The player mu
 - Visual feedback when speech is detected vs recognised
 - Fallback or error messaging for unsupported browsers
 - May need a short cooldown between rounds to avoid picking up residual audio
+
+## Feature 5: Extra Colours ✅
+
+Add option to increase the number of colours from 5 up to 10 in Custom mode. Additional colours: orange, pink, purple, cyan, brown.
+
+## Feature 6: Language Selection
+
+Add a toggle or dropdown to switch the game language. Colour words and button labels will display in the selected language, adding an extra cognitive challenge for multilingual players or language learners.
+
+### Supported Languages
+
+- English (default)
+- Welsh (Cymraeg)
+- Italian (Italiano)
+- Spanish (Español)
+- French (Français)
+- German (Deutsch)
+
+### Colour Translations
+
+| English | Welsh | Italian | Spanish | French | German |
+|---------|-------|---------|---------|--------|--------|
+| Red | Coch | Rosso | Rojo | Rouge | Rot |
+| Green | Gwyrdd | Verde | Verde | Vert | Grün |
+| Blue | Glas | Blu | Azul | Bleu | Blau |
+| Grey | Llwyd | Grigio | Gris | Gris | Grau |
+| Yellow | Melyn | Giallo | Amarillo | Jaune | Gelb |
+
+### Considerations
+
+- Language selector on start screen (dropdown or button group)
+- Persist language choice in localStorage
+- Update voice recognition language code when using audio mode (e.g., `es-ES`, `fr-FR`)
+- Consider adding voice aliases for each language to handle pronunciation variations

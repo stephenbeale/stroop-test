@@ -114,11 +114,16 @@
             border-color: #fff;
         }
 
-        .color-btn[data-color="red"]   { background: #dc3545; }
-        .color-btn[data-color="green"] { background: #28a745; }
-        .color-btn[data-color="blue"]  { background: #007bff; }
+        .color-btn[data-color="red"]    { background: #dc3545; }
+        .color-btn[data-color="green"]  { background: #28a745; }
+        .color-btn[data-color="blue"]   { background: #007bff; }
         .color-btn[data-color="grey"]   { background: #808080; }
-        .color-btn[data-color="yellow"] { background: #d4a017; color: #fff; }
+        .color-btn[data-color="yellow"] { background: #d4a017; }
+        .color-btn[data-color="orange"] { background: #fd7e14; }
+        .color-btn[data-color="pink"]   { background: #e83e8c; }
+        .color-btn[data-color="purple"] { background: #6f42c1; }
+        .color-btn[data-color="cyan"]   { background: #17a2b8; }
+        .color-btn[data-color="brown"]  { background: #795548; }
 
         #end-screen h1 { font-size: 2rem; }
 
@@ -329,6 +334,10 @@
             </label>
             <span>Remove colour fill from buttons</span>
         </div>
+        <div class="toggle-row">
+            <span>Colours: <span id="colour-count-label">5</span></span>
+            <input type="range" id="colour-count" min="3" max="10" value="5" style="width:120px;margin-left:0.5rem">
+        </div>
     </div>
     <button id="start-btn">Start</button>
 </div>
@@ -365,8 +374,12 @@
 </div>
 
 <script>
-    const COLORS = ['red', 'green', 'blue', 'grey', 'yellow'];
-    const COLOR_CSS = { red: '#dc3545', green: '#28a745', blue: '#007bff', grey: '#999', yellow: '#e6c619' };
+    const ALL_COLORS = ['red', 'green', 'blue', 'grey', 'yellow', 'orange', 'pink', 'purple', 'cyan', 'brown'];
+    const COLOR_CSS = {
+        red: '#dc3545', green: '#28a745', blue: '#007bff', grey: '#999', yellow: '#e6c619',
+        orange: '#fd7e14', pink: '#e83e8c', purple: '#6f42c1', cyan: '#17a2b8', brown: '#795548'
+    };
+    let activeColors = ALL_COLORS.slice(0, 5);
 
     const DIFFICULTY_PRESETS = {
         easy: {
@@ -413,6 +426,7 @@
     let noColourFill = false;
     let responseTimes = [];
     let selectedDifficulty = 'easy';
+    let colourCount = 5;
 
     const startScreen = document.getElementById('start-screen');
     const gameScreen = document.getElementById('game-screen');
@@ -450,6 +464,14 @@
         }
     });
 
+    // Colour count slider
+    const colourCountSlider = document.getElementById('colour-count');
+    const colourCountLabel = document.getElementById('colour-count-label');
+    colourCountSlider.addEventListener('input', () => {
+        colourCount = parseInt(colourCountSlider.value);
+        colourCountLabel.textContent = colourCount;
+    });
+
     difficultyBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             difficultyBtns.forEach(b => b.classList.remove('selected'));
@@ -481,6 +503,7 @@
             shuffleEnabled = document.getElementById('shuffle-buttons').checked;
             shuffleEveryAnswer = document.getElementById('shuffle-every-answer').checked;
             noColourFill = document.getElementById('no-colour-fill').checked;
+            colourCount = parseInt(document.getElementById('colour-count').value);
             timeLimit = 10000;
             minTimeLimit = 2000;
         } else {
@@ -491,21 +514,38 @@
             noColourFill = preset.noColourFill;
             timeLimit = preset.initialTime;
             minTimeLimit = preset.minTime;
+            colourCount = 5; // Default for presets
         }
 
-        buttons.forEach(btn => btn.classList.toggle('no-label', !showLabels));
-        buttons.forEach(btn => btn.classList.toggle('no-fill', noColourFill));
+        // Set active colours and regenerate buttons
+        activeColors = ALL_COLORS.slice(0, colourCount);
+        generateButtons();
+
         show(gameScreen);
         nextRound();
     }
 
+    function generateButtons() {
+        buttonsContainer.innerHTML = '';
+        activeColors.forEach(color => {
+            const btn = document.createElement('button');
+            btn.className = 'color-btn';
+            btn.dataset.color = color;
+            btn.textContent = color.charAt(0).toUpperCase() + color.slice(1);
+            btn.addEventListener('click', () => handleAnswer(color));
+            if (!showLabels) btn.classList.add('no-label');
+            if (noColourFill) btn.classList.add('no-fill');
+            buttonsContainer.appendChild(btn);
+        });
+    }
+
     function pickRandomColor(exclude) {
-        const options = COLORS.filter(c => c !== exclude);
+        const options = activeColors.filter(c => c !== exclude);
         return options[Math.floor(Math.random() * options.length)];
     }
 
     function nextRound() {
-        const word = COLORS[wordIndex % COLORS.length];
+        const word = activeColors[wordIndex % activeColors.length];
         currentFillColor = pickRandomColor(word);
         wordIndex++;
 
