@@ -4,7 +4,7 @@
 
 Add a toggle that removes the colour background from buttons, leaving only the text label. This forces players to read the word on each button rather than relying on the button colour as a visual cue.
 
-## Feature 2: Difficulty Levels (Easy / Medium / Hard)
+## Feature 2: Difficulty Levels (Easy / Medium / Hard) ✅
 
 Replace individual toggles with three preset difficulty levels that group settings together.
 
@@ -56,7 +56,11 @@ Add a mode where the player's microphone is the only input method. The player mu
 - Fallback or error messaging for unsupported browsers
 - May need a short cooldown between rounds to avoid picking up residual audio
 
-## Feature 5: Language Selection
+## Feature 5: Extra Colours ✅
+
+Add option to increase the number of colours from 5 up to 10 in Custom mode. Additional colours: orange, pink, purple, cyan, brown.
+
+## Feature 6: Language Selection
 
 Add a toggle or dropdown to switch the game language. Colour words and button labels will display in the selected language, adding an extra cognitive challenge for multilingual players or language learners.
 
