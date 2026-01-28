@@ -187,6 +187,15 @@
             transform: translateX(22px);
         }
 
+        .toggle input:disabled + .toggle-track {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .toggle-row.disabled {
+            opacity: 0.6;
+        }
+
         .color-btn.no-label { color: transparent; }
         .color-btn.no-fill { background: #333 !important; }
 
@@ -332,6 +341,22 @@
     document.getElementById('start-btn').addEventListener('click', startGame);
     document.getElementById('restart-btn').addEventListener('click', () => show(startScreen));
     buttons.forEach(btn => btn.addEventListener('click', () => handleAnswer(btn.dataset.color)));
+
+    // Force labels on when no-colour-fill is enabled (otherwise game is impossible)
+    const noColourFillCheckbox = document.getElementById('no-colour-fill');
+    const showLabelsCheckbox = document.getElementById('show-labels');
+    const showLabelsRow = showLabelsCheckbox.closest('.toggle-row');
+
+    noColourFillCheckbox.addEventListener('change', () => {
+        if (noColourFillCheckbox.checked) {
+            showLabelsCheckbox.checked = true;
+            showLabelsCheckbox.disabled = true;
+            showLabelsRow.classList.add('disabled');
+        } else {
+            showLabelsCheckbox.disabled = false;
+            showLabelsRow.classList.remove('disabled');
+        }
+    });
 
     function show(screen) {
         [startScreen, gameScreen, endScreen].forEach(s => s.classList.remove('active'));
