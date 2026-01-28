@@ -188,6 +188,7 @@
         }
 
         .color-btn.no-label { color: transparent; }
+        .color-btn.no-fill { background: #333 !important; }
 
         #pause-overlay {
             display: none;
@@ -254,6 +255,13 @@
         </label>
         <span>Shuffle button order after every correct answer</span>
     </div>
+    <div class="toggle-row">
+        <label class="toggle">
+            <input type="checkbox" id="no-colour-fill">
+            <span class="toggle-track"></span>
+        </label>
+        <span>Remove colour fill from buttons</span>
+    </div>
     <button id="start-btn">Start</button>
 </div>
 
@@ -305,6 +313,7 @@
     let pauseCountdownInterval = 0;
     let shuffleEnabled = false;
     let shuffleEveryAnswer = false;
+    let noColourFill = false;
     let responseTimes = [];
 
     const startScreen = document.getElementById('start-screen');
@@ -337,7 +346,9 @@
         showLabels = document.getElementById('show-labels').checked;
         shuffleEnabled = document.getElementById('shuffle-buttons').checked;
         shuffleEveryAnswer = document.getElementById('shuffle-every-answer').checked;
+        noColourFill = document.getElementById('no-colour-fill').checked;
         buttons.forEach(btn => btn.classList.toggle('no-label', !showLabels));
+        buttons.forEach(btn => btn.classList.toggle('no-fill', noColourFill));
         show(gameScreen);
         nextRound();
     }
