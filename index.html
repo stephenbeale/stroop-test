@@ -147,7 +147,7 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             color: #aaa;
             font-size: 1rem;
         }
@@ -188,6 +188,7 @@
         }
 
         .color-btn.no-label { color: transparent; }
+        .color-btn.no-fill { background: #333 !important; }
 
         #pause-overlay {
             display: none;
@@ -222,6 +223,54 @@
             color: #fff;
             margin-top: 1.5rem;
         }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .difficulty-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: 2px solid #444;
+            border-radius: 8px;
+            background: transparent;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .difficulty-btn:hover {
+            border-color: #666;
+            color: #fff;
+        }
+
+        .difficulty-btn.selected {
+            border-color: #e94560;
+            background: #e94560;
+            color: #fff;
+        }
+
+        .custom-toggles {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .custom-toggles.visible {
+            display: flex;
+        }
+
+        .difficulty-info {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            min-height: 1.2em;
+        }
     </style>
 </head>
 <body>
@@ -230,29 +279,44 @@
     <h1>Stroop Test</h1>
     <p class="instructions">
         A colour word will appear on screen, but displayed in a <strong>different colour</strong>.<br><br>
-        Your task: identify the <strong>colour of the text</strong>, not the word itself.<br><br>
-        You have <strong>10 seconds</strong> per round. Every <strong>10 correct answers</strong>, the time drops by 1 second. How long can you keep your streak?
+        Your task: identify the <strong>colour of the text</strong>, not the word itself.
     </p>
-    <div class="toggle-row">
-        <label class="toggle">
-            <input type="checkbox" id="show-labels" checked>
-            <span class="toggle-track"></span>
-        </label>
-        <span>Show labels on buttons</span>
+    <div class="difficulty-selector">
+        <button class="difficulty-btn selected" data-difficulty="easy">Easy</button>
+        <button class="difficulty-btn" data-difficulty="medium">Medium</button>
+        <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+        <button class="difficulty-btn" data-difficulty="custom">Custom</button>
     </div>
-    <div class="toggle-row">
-        <label class="toggle">
-            <input type="checkbox" id="shuffle-buttons">
-            <span class="toggle-track"></span>
-        </label>
-        <span>Shuffle buttons every 10 answers</span>
-    </div>
-    <div class="toggle-row">
-        <label class="toggle">
-            <input type="checkbox" id="shuffle-every-answer">
-            <span class="toggle-track"></span>
-        </label>
-        <span>Shuffle button order after every correct answer</span>
+    <div class="difficulty-info" id="difficulty-info">Colour buttons, labels shown, 10s timer</div>
+    <div class="custom-toggles" id="custom-toggles">
+        <div class="toggle-row">
+            <label class="toggle">
+                <input type="checkbox" id="show-labels" checked>
+                <span class="toggle-track"></span>
+            </label>
+            <span>Show labels on buttons</span>
+        </div>
+        <div class="toggle-row">
+            <label class="toggle">
+                <input type="checkbox" id="shuffle-buttons">
+                <span class="toggle-track"></span>
+            </label>
+            <span>Shuffle buttons every 10 answers</span>
+        </div>
+        <div class="toggle-row">
+            <label class="toggle">
+                <input type="checkbox" id="shuffle-every-answer">
+                <span class="toggle-track"></span>
+            </label>
+            <span>Shuffle button order after every correct answer</span>
+        </div>
+        <div class="toggle-row">
+            <label class="toggle">
+                <input type="checkbox" id="no-colour-fill">
+                <span class="toggle-track"></span>
+            </label>
+            <span>Remove colour fill from buttons</span>
+        </div>
     </div>
     <button id="start-btn">Start</button>
 </div>
@@ -291,8 +355,36 @@
 <script>
     const COLORS = ['red', 'green', 'blue', 'grey', 'yellow'];
     const COLOR_CSS = { red: '#dc3545', green: '#28a745', blue: '#007bff', grey: '#999', yellow: '#e6c619' };
-    const INITIAL_TIME_LIMIT = 10000;
-    const MIN_TIME_LIMIT = 2000;
+
+    const DIFFICULTY_PRESETS = {
+        easy: {
+            showLabels: true,
+            shuffleEnabled: false,
+            shuffleEveryAnswer: false,
+            noColourFill: false,
+            initialTime: 10000,
+            minTime: 2000,
+            info: 'Colour buttons, labels shown, 10s timer'
+        },
+        medium: {
+            showLabels: false,
+            shuffleEnabled: true,
+            shuffleEveryAnswer: false,
+            noColourFill: false,
+            initialTime: 8000,
+            minTime: 2000,
+            info: 'Colour buttons, no labels, shuffle every 10, 8s timer'
+        },
+        hard: {
+            showLabels: true,
+            shuffleEnabled: false,
+            shuffleEveryAnswer: true,
+            noColourFill: true,
+            initialTime: 6000,
+            minTime: 1000,
+            info: 'No colour fill, shuffle every answer, 6s timer, min 1s'
+        }
+    };
 
     let wordIndex = 0;
     let streak = 0;
@@ -301,11 +393,14 @@
     let timerRAF = 0;
     let timeout = 0;
     let showLabels = true;
-    let timeLimit = INITIAL_TIME_LIMIT;
+    let timeLimit = 10000;
+    let minTimeLimit = 2000;
     let pauseCountdownInterval = 0;
     let shuffleEnabled = false;
     let shuffleEveryAnswer = false;
+    let noColourFill = false;
     let responseTimes = [];
+    let selectedDifficulty = 'easy';
 
     const startScreen = document.getElementById('start-screen');
     const gameScreen = document.getElementById('game-screen');
@@ -319,10 +414,29 @@
     const pauseOverlay = document.getElementById('pause-overlay');
     const pauseMessage = document.getElementById('pause-message');
     const pauseCountdown = document.getElementById('pause-countdown');
+    const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+    const difficultyInfo = document.getElementById('difficulty-info');
+    const customToggles = document.getElementById('custom-toggles');
 
     document.getElementById('start-btn').addEventListener('click', startGame);
     document.getElementById('restart-btn').addEventListener('click', () => show(startScreen));
     buttons.forEach(btn => btn.addEventListener('click', () => handleAnswer(btn.dataset.color)));
+
+    difficultyBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            difficultyBtns.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedDifficulty = btn.dataset.difficulty;
+
+            if (selectedDifficulty === 'custom') {
+                customToggles.classList.add('visible');
+                difficultyInfo.textContent = 'Configure your own settings';
+            } else {
+                customToggles.classList.remove('visible');
+                difficultyInfo.textContent = DIFFICULTY_PRESETS[selectedDifficulty].info;
+            }
+        });
+    });
 
     function show(screen) {
         [startScreen, gameScreen, endScreen].forEach(s => s.classList.remove('active'));
@@ -333,11 +447,26 @@
         wordIndex = 0;
         streak = 0;
         responseTimes = [];
-        timeLimit = INITIAL_TIME_LIMIT;
-        showLabels = document.getElementById('show-labels').checked;
-        shuffleEnabled = document.getElementById('shuffle-buttons').checked;
-        shuffleEveryAnswer = document.getElementById('shuffle-every-answer').checked;
+
+        if (selectedDifficulty === 'custom') {
+            showLabels = document.getElementById('show-labels').checked;
+            shuffleEnabled = document.getElementById('shuffle-buttons').checked;
+            shuffleEveryAnswer = document.getElementById('shuffle-every-answer').checked;
+            noColourFill = document.getElementById('no-colour-fill').checked;
+            timeLimit = 10000;
+            minTimeLimit = 2000;
+        } else {
+            const preset = DIFFICULTY_PRESETS[selectedDifficulty];
+            showLabels = preset.showLabels;
+            shuffleEnabled = preset.shuffleEnabled;
+            shuffleEveryAnswer = preset.shuffleEveryAnswer;
+            noColourFill = preset.noColourFill;
+            timeLimit = preset.initialTime;
+            minTimeLimit = preset.minTime;
+        }
+
         buttons.forEach(btn => btn.classList.toggle('no-label', !showLabels));
+        buttons.forEach(btn => btn.classList.toggle('no-fill', noColourFill));
         show(gameScreen);
         nextRound();
     }
@@ -387,7 +516,7 @@
             responseTimes.push(performance.now() - timerStart);
             streak++;
             if (shuffleEveryAnswer) shuffleButtonOrder();
-            const canReduceTime = timeLimit > MIN_TIME_LIMIT;
+            const canReduceTime = timeLimit > minTimeLimit;
             if (streak > 0 && streak % 10 === 0 && (canReduceTime || shuffleEnabled)) {
                 showPause();
             } else {
@@ -399,8 +528,8 @@
     }
 
     function showPause() {
-        const canReduceTime = timeLimit > MIN_TIME_LIMIT;
-        const newLimit = canReduceTime ? Math.max(timeLimit - 1000, MIN_TIME_LIMIT) : timeLimit;
+        const canReduceTime = timeLimit > minTimeLimit;
+        const newLimit = canReduceTime ? Math.max(timeLimit - 1000, minTimeLimit) : timeLimit;
         const newSeconds = newLimit / 1000;
 
         let msg = `Nice work! ${streak} in a row!`;
