@@ -247,6 +247,13 @@
         </label>
         <span>Shuffle buttons every 10 answers</span>
     </div>
+    <div class="toggle-row">
+        <label class="toggle">
+            <input type="checkbox" id="shuffle-every-answer">
+            <span class="toggle-track"></span>
+        </label>
+        <span>Shuffle button order after every correct answer</span>
+    </div>
     <button id="start-btn">Start</button>
 </div>
 
@@ -275,7 +282,9 @@
     <h1>Game Over</h1>
     <div id="end-message"></div>
     <div id="final-score">0</div>
-    <div class="prompt-label" style="margin-bottom:2rem">streak</div>
+    <div class="prompt-label">streak</div>
+    <div id="avg-response" style="font-size:2.5rem;font-weight:900;color:#0f3460;margin-top:1.5rem">0 ms</div>
+    <div class="prompt-label" style="margin-bottom:2rem">avg response time</div>
     <button id="restart-btn">Play Again</button>
 </div>
 
@@ -295,6 +304,8 @@
     let timeLimit = INITIAL_TIME_LIMIT;
     let pauseCountdownInterval = 0;
     let shuffleEnabled = false;
+    let shuffleEveryAnswer = false;
+    let responseTimes = [];
 
     const startScreen = document.getElementById('start-screen');
     const gameScreen = document.getElementById('game-screen');
@@ -321,9 +332,11 @@
     function startGame() {
         wordIndex = 0;
         streak = 0;
+        responseTimes = [];
         timeLimit = INITIAL_TIME_LIMIT;
         showLabels = document.getElementById('show-labels').checked;
         shuffleEnabled = document.getElementById('shuffle-buttons').checked;
+        shuffleEveryAnswer = document.getElementById('shuffle-every-answer').checked;
         buttons.forEach(btn => btn.classList.toggle('no-label', !showLabels));
         show(gameScreen);
         nextRound();
@@ -371,7 +384,9 @@
         cancelAnimationFrame(timerRAF);
 
         if (chosen === currentFillColor) {
+            responseTimes.push(performance.now() - timerStart);
             streak++;
+            if (shuffleEveryAnswer) shuffleButtonOrder();
             const canReduceTime = timeLimit > MIN_TIME_LIMIT;
             if (streak > 0 && streak % 10 === 0 && (canReduceTime || shuffleEnabled)) {
                 showPause();
@@ -428,6 +443,10 @@
         cancelAnimationFrame(timerRAF);
         endMessage.textContent = reason;
         finalScore.textContent = streak;
+        const avg = responseTimes.length > 0
+            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length)
+            : 0;
+        document.getElementById('avg-response').textContent = avg + ' ms';
         show(endScreen);
     }
 </script>
