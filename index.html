@@ -300,7 +300,7 @@
     <div id="end-message"></div>
     <div id="final-score">0</div>
     <div class="prompt-label">streak</div>
-    <div id="avg-response" style="font-size:2.5rem;font-weight:900;color:#0f3460;margin-top:1.5rem">0 ms</div>
+    <div id="avg-response" style="font-size:2.5rem;font-weight:900;color:#0f3460;margin-top:1.5rem">0.0 s</div>
     <div class="prompt-label" style="margin-bottom:2rem">avg response time</div>
     <button id="restart-btn">Play Again</button>
 </div>
@@ -480,9 +480,9 @@
         endMessage.textContent = reason;
         finalScore.textContent = streak;
         const avg = responseTimes.length > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length)
-            : 0;
-        document.getElementById('avg-response').textContent = avg + ' ms';
+            ? (responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length / 1000).toFixed(1)
+            : '0.0';
+        document.getElementById('avg-response').textContent = avg + ' s';
         show(endScreen);
     }
 </script>
