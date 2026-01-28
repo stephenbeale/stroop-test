@@ -240,6 +240,13 @@
         </label>
         <span>Show labels on buttons</span>
     </div>
+    <div class="toggle-row">
+        <label class="toggle">
+            <input type="checkbox" id="shuffle-buttons">
+            <span class="toggle-track"></span>
+        </label>
+        <span>Shuffle buttons every 10 answers</span>
+    </div>
     <button id="start-btn">Start</button>
 </div>
 
@@ -287,6 +294,7 @@
     let showLabels = true;
     let timeLimit = INITIAL_TIME_LIMIT;
     let pauseCountdownInterval = 0;
+    let shuffleEnabled = false;
 
     const startScreen = document.getElementById('start-screen');
     const gameScreen = document.getElementById('game-screen');
@@ -296,6 +304,7 @@
     const finalScore = document.getElementById('final-score');
     const endMessage = document.getElementById('end-message');
     const buttons = document.querySelectorAll('.color-btn');
+    const buttonsContainer = document.querySelector('.buttons');
     const pauseOverlay = document.getElementById('pause-overlay');
     const pauseMessage = document.getElementById('pause-message');
     const pauseCountdown = document.getElementById('pause-countdown');
@@ -314,6 +323,7 @@
         streak = 0;
         timeLimit = INITIAL_TIME_LIMIT;
         showLabels = document.getElementById('show-labels').checked;
+        shuffleEnabled = document.getElementById('shuffle-buttons').checked;
         buttons.forEach(btn => btn.classList.toggle('no-label', !showLabels));
         show(gameScreen);
         nextRound();
@@ -362,7 +372,8 @@
 
         if (chosen === currentFillColor) {
             streak++;
-            if (streak > 0 && streak % 10 === 0 && timeLimit > MIN_TIME_LIMIT) {
+            const canReduceTime = timeLimit > MIN_TIME_LIMIT;
+            if (streak > 0 && streak % 10 === 0 && (canReduceTime || shuffleEnabled)) {
                 showPause();
             } else {
                 nextRound();
@@ -373,9 +384,18 @@
     }
 
     function showPause() {
-        const newLimit = Math.max(timeLimit - 1000, MIN_TIME_LIMIT);
+        const canReduceTime = timeLimit > MIN_TIME_LIMIT;
+        const newLimit = canReduceTime ? Math.max(timeLimit - 1000, MIN_TIME_LIMIT) : timeLimit;
         const newSeconds = newLimit / 1000;
-        pauseMessage.textContent = `Nice work! ${streak} in a row! Time per round is now ${newSeconds} second${newSeconds !== 1 ? 's' : ''}.`;
+
+        let msg = `Nice work! ${streak} in a row!`;
+        if (canReduceTime) {
+            msg += ` Time per round is now ${newSeconds} second${newSeconds !== 1 ? 's' : ''}.`;
+        }
+        if (shuffleEnabled) {
+            msg += ' Buttons shuffled!';
+        }
+        pauseMessage.textContent = msg;
         pauseCountdown.textContent = '5';
         pauseOverlay.classList.add('active');
 
@@ -388,9 +408,19 @@
                 clearInterval(pauseCountdownInterval);
                 pauseOverlay.classList.remove('active');
                 timeLimit = newLimit;
+                if (shuffleEnabled) shuffleButtonOrder();
                 nextRound();
             }
         }, 1000);
+    }
+
+    function shuffleButtonOrder() {
+        const btns = Array.from(buttonsContainer.children);
+        for (let i = btns.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [btns[i], btns[j]] = [btns[j], btns[i]];
+        }
+        btns.forEach(btn => buttonsContainer.appendChild(btn));
     }
 
     function endGame(reason) {
