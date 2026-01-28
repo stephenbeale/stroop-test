@@ -55,3 +55,33 @@ Add a mode where the player's microphone is the only input method. The player mu
 - Visual feedback when speech is detected vs recognised
 - Fallback or error messaging for unsupported browsers
 - May need a short cooldown between rounds to avoid picking up residual audio
+
+## Feature 5: Language Selection
+
+Add a toggle or dropdown to switch the game language. Colour words and button labels will display in the selected language, adding an extra cognitive challenge for multilingual players or language learners.
+
+### Supported Languages
+
+- English (default)
+- Welsh (Cymraeg)
+- Italian (Italiano)
+- Spanish (Español)
+- French (Français)
+- German (Deutsch)
+
+### Colour Translations
+
+| English | Welsh | Italian | Spanish | French | German |
+|---------|-------|---------|---------|--------|--------|
+| Red | Coch | Rosso | Rojo | Rouge | Rot |
+| Green | Gwyrdd | Verde | Verde | Vert | Grün |
+| Blue | Glas | Blu | Azul | Bleu | Blau |
+| Grey | Llwyd | Grigio | Gris | Gris | Grau |
+| Yellow | Melyn | Giallo | Amarillo | Jaune | Gelb |
+
+### Considerations
+
+- Language selector on start screen (dropdown or button group)
+- Persist language choice in localStorage
+- Update voice recognition language code when using audio mode (e.g., `es-ES`, `fr-FR`)
+- Consider adding voice aliases for each language to handle pronunciation variations
