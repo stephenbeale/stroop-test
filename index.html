@@ -288,6 +288,45 @@
         .custom-toggles .toggle-row {
             margin-bottom: 1rem;
         }
+
+        .language-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .language-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 2px solid #444;
+            border-radius: 6px;
+            background: transparent;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .language-btn:hover {
+            border-color: #666;
+            color: #fff;
+        }
+
+        .language-btn.selected {
+            border-color: #0f3460;
+            background: #0f3460;
+            color: #fff;
+        }
+
+        .language-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
     </style>
 </head>
 <body>
@@ -298,6 +337,15 @@
         A colour word will appear on screen, but displayed in a <strong>different colour</strong>.<br><br>
         Your task: identify the <strong>colour of the text</strong>, not the word itself.
     </p>
+    <div class="language-label">Language</div>
+    <div class="language-selector">
+        <button class="language-btn selected" data-lang="en">English</button>
+        <button class="language-btn" data-lang="cy">Cymraeg</button>
+        <button class="language-btn" data-lang="it">Italiano</button>
+        <button class="language-btn" data-lang="es">Espanol</button>
+        <button class="language-btn" data-lang="fr">Francais</button>
+        <button class="language-btn" data-lang="de">Deutsch</button>
+    </div>
     <div class="difficulty-selector">
         <button class="difficulty-btn selected" data-difficulty="easy">Easy</button>
         <button class="difficulty-btn" data-difficulty="medium">Medium</button>
@@ -381,6 +429,46 @@
     };
     let activeColors = ALL_COLORS.slice(0, 5);
 
+    // Language translations for colour names
+    const TRANSLATIONS = {
+        en: {
+            red: 'Red', green: 'Green', blue: 'Blue', grey: 'Grey', yellow: 'Yellow',
+            orange: 'Orange', pink: 'Pink', purple: 'Purple', cyan: 'Cyan', brown: 'Brown'
+        },
+        cy: {
+            red: 'Coch', green: 'Gwyrdd', blue: 'Glas', grey: 'Llwyd', yellow: 'Melyn',
+            orange: 'Oren', pink: 'Pinc', purple: 'Porffor', cyan: 'Cyan', brown: 'Brown'
+        },
+        it: {
+            red: 'Rosso', green: 'Verde', blue: 'Blu', grey: 'Grigio', yellow: 'Giallo',
+            orange: 'Arancione', pink: 'Rosa', purple: 'Viola', cyan: 'Ciano', brown: 'Marrone'
+        },
+        es: {
+            red: 'Rojo', green: 'Verde', blue: 'Azul', grey: 'Gris', yellow: 'Amarillo',
+            orange: 'Naranja', pink: 'Rosa', purple: 'Morado', cyan: 'Cian', brown: 'Marron'
+        },
+        fr: {
+            red: 'Rouge', green: 'Vert', blue: 'Bleu', grey: 'Gris', yellow: 'Jaune',
+            orange: 'Orange', pink: 'Rose', purple: 'Violet', cyan: 'Cyan', brown: 'Brun'
+        },
+        de: {
+            red: 'Rot', green: 'Grun', blue: 'Blau', grey: 'Grau', yellow: 'Gelb',
+            orange: 'Orange', pink: 'Rosa', purple: 'Lila', cyan: 'Cyan', brown: 'Braun'
+        }
+    };
+
+    // Speech recognition language codes
+    const SPEECH_LANG_CODES = {
+        en: 'en-GB',
+        cy: 'cy-GB',
+        it: 'it-IT',
+        es: 'es-ES',
+        fr: 'fr-FR',
+        de: 'de-DE'
+    };
+
+    let selectedLanguage = localStorage.getItem('stroopLanguage') || 'en';
+
     const DIFFICULTY_PRESETS = {
         easy: {
             showLabels: true,
@@ -443,6 +531,7 @@
     const difficultyBtns = document.querySelectorAll('.difficulty-btn');
     const difficultyInfo = document.getElementById('difficulty-info');
     const customToggles = document.getElementById('custom-toggles');
+    const languageBtns = document.querySelectorAll('.language-btn');
 
     document.getElementById('start-btn').addEventListener('click', startGame);
     document.getElementById('restart-btn').addEventListener('click', () => show(startScreen));
@@ -471,6 +560,34 @@
         colourCount = parseInt(colourCountSlider.value);
         colourCountLabel.textContent = colourCount;
     });
+
+    // Language selection
+    languageBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            languageBtns.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedLanguage = btn.dataset.lang;
+            localStorage.setItem('stroopLanguage', selectedLanguage);
+        });
+    });
+
+    // Restore saved language on page load
+    function initLanguageSelection() {
+        languageBtns.forEach(btn => {
+            btn.classList.toggle('selected', btn.dataset.lang === selectedLanguage);
+        });
+    }
+    initLanguageSelection();
+
+    // Get translated colour name
+    function getTranslatedColour(color) {
+        return TRANSLATIONS[selectedLanguage][color] || TRANSLATIONS.en[color];
+    }
+
+    // Get speech recognition language code
+    function getSpeechLangCode() {
+        return SPEECH_LANG_CODES[selectedLanguage] || 'en-GB';
+    }
 
     difficultyBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -531,7 +648,7 @@
             const btn = document.createElement('button');
             btn.className = 'color-btn';
             btn.dataset.color = color;
-            btn.textContent = color.charAt(0).toUpperCase() + color.slice(1);
+            btn.textContent = getTranslatedColour(color);
             btn.addEventListener('click', () => handleAnswer(color));
             if (!showLabels) btn.classList.add('no-label');
             if (noColourFill) btn.classList.add('no-fill');
@@ -549,7 +666,7 @@
         currentFillColor = pickRandomColor(word);
         wordIndex++;
 
-        colorWord.textContent = word.toUpperCase();
+        colorWord.textContent = getTranslatedColour(word).toUpperCase();
         colorWord.style.color = COLOR_CSS[currentFillColor];
 
         timerBar.style.transition = 'none';
@@ -591,7 +708,7 @@
                 nextRound();
             }
         } else {
-            endGame(`The answer was ${currentFillColor.toUpperCase()}.`);
+            endGame(`The answer was ${getTranslatedColour(currentFillColor).toUpperCase()}.`);
         }
     }
 
