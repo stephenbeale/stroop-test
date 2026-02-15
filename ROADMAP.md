@@ -60,7 +60,11 @@ Add a mode where the player's microphone is the only input method. The player mu
 
 Add option to increase the number of colours from 5 up to 10 in Custom mode. Additional colours: orange, pink, purple, cyan, brown.
 
-## Feature 6: Language Selection
+## Next feature: Start time slider - DONE
+
+On start page, let users select a starting max response time, with 10s down to 2 sec and show that as a extremely difficult.
+
+## Feature 6: Language Selection - Partially Complete
 
 Add a toggle or dropdown to switch the game language. Colour words and button labels will display in the selected language, adding an extra cognitive challenge for multilingual players or language learners.
 
@@ -72,9 +76,36 @@ Add a fractional time reduction after user hits the minimum time limit - reduce 
 
 Ask user to input their name for leaderboard, to compete against themselves at this point. Tell them if they performed a personal best after subsequent runs, or what their goal is if not.
 
-## Feature 9: Use different colours to Cyan
+## Feature 9: Use clear, distinct colours. 
 
-Use brown instead of cyan.
+Use brown instead of cyan. Use pink over purple. Remove purple.
+
+## Feature 10: Put answer buttons in a few columns.
+
+Make the answer buttons in a few columns - dont let them fill the width of a wide screen, they should be closer to centre, so 3 x 3 block if 9 colours.
+
+## Next Feature: Make time slider brighter colour.
+
+Make time slider colour more prominent as it is currently hard to see 
+
+## Feature: Voice mode - ignore invalid answers
+
+If word is not recognised, show a warning saying "Colour not recgonised!" and continue, allowing next input
+
+## Feature: Fix voice mode toggle logic in custom
+
+Some custom toggles should adjust to read-only if voice mode is active
+
+## Bug fix: voice input for Spanish should not stop after 1 entry
+
+Currently, Spanish version stops after 1st correct voice answer - this should not happen. Check other languages for this, too.
+
+## Bug fix: voice input for Welsh does not work
+
+It allows inputs but none are correct - is there even a Welsh speech-to-text engine to verify this? If not, remove the audio option when Welsh is selected.
+
+## Bug fix: voice input on desktop browser should work
+It works on mobile browser but not desktop - why? Fix it please or prove it is a local issue.
 
 ### Supported Languages
 
